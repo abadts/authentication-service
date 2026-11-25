@@ -1,0 +1,92 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: authentication-service
+  profiles:
+    default: local
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+  datasource:
+    url: ${DATABASE_URL:jdbc:mysql://localhost:3306/invex?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DATABASE_USERNAME:admin}
+    password: ${DATABASE_PASSWORD:admin}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: false
+
+security:
+  oauth2:
+    issuer: ${OAUTH2_ISSUER:http://localhost:8080}
+    public-client:
+      id: ${OAUTH2_PUBLIC_CLIENT_ID:employee-management-client}
+      redirect-uris:
+        - http://localhost:8080/swagger-ui/oauth2-redirect.html
+        - http://127.0.0.1:8080/swagger-ui/oauth2-redirect.html
+        - http://localhost:8081/swagger-ui/oauth2-redirect.html
+        - http://127.0.0.1:8081/swagger-ui/oauth2-redirect.html
+      scopes:
+        - openid
+        - profile
+        - email
+        - employees:read
+        - employees:write
+        - employees:delete
+    service-client:
+      id: ${OAUTH2_SERVICE_CLIENT_ID:employee-service}
+      secret: ${OAUTH2_SERVICE_CLIENT_SECRET:}
+      scopes:
+        - employees:read
+        - employees:write
+        - employees:delete
+  jwt:
+    audience: ${JWT_AUDIENCE:authentication-service}
+    resource-audiences:
+      - authentication-service
+      - employee-service
+    private-key: ${JWT_PRIVATE_KEY:}
+    public-key: ${JWT_PUBLIC_KEY:}
+    private-key-location: ${JWT_PRIVATE_KEY_LOCATION:}
+    public-key-location: ${JWT_PUBLIC_KEY_LOCATION:}
+  token:
+    access-token-time-to-live: 15m
+    refresh-token-time-to-live: 8h
+    authorization-code-time-to-live: 2m
+  bootstrap:
+    username: ${BOOTSTRAP_ADMIN_USERNAME:admin}
+    password: ${BOOTSTRAP_ADMIN_PASSWORD:admin}
+    email: ${BOOTSTRAP_ADMIN_EMAIL:admin@test.invex.local}
+    employee-username: ${BOOTSTRAP_EMPLOYEE_USERNAME:employee}
+    employee-password: ${BOOTSTRAP_EMPLOYEE_PASSWORD:employee}
+    employee-email: ${BOOTSTRAP_EMPLOYEE_EMAIL:employee@test.invex.local}
+
+springdoc:
+  swagger-ui:
+    operations-sorter: method
+    tags-sorter: alpha
+    oauth:
+      client-id: ${OAUTH2_PUBLIC_CLIENT_ID:employee-management-client}
+      use-pkce-with-authorization-code-grant: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  level:
+    root: INFO
+    org.springframework.security: INFO
+    org.hibernate.SQL: WARN

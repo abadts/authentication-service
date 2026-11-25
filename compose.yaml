@@ -1,0 +1,37 @@
+services:
+  mysql:
+    build: ./docker/mysql
+    image: invex-mysql
+    container_name: invex-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: invex
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+      MYSQL_ROOT_PASSWORD: admin
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uadmin", "-padmin"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - invex-mysql:/var/lib/mysql
+
+  authentication-service:
+    build: .
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DATABASE_URL: jdbc:mysql://mysql:3306/invex?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+      DATABASE_USERNAME: admin
+      DATABASE_PASSWORD: admin
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  invex-mysql:
